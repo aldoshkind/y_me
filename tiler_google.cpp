@@ -54,12 +54,12 @@ int tiler_google::get_row(double lat, int zoom)
 	return lat_to_height(lat, zoom) / GOOGLE_TILE_HEIGHT;
 }
 
-QPoint tiler_google::get_tile_col_row(QGeoCoordinate world_coord, int zoom)
+QPoint tiler_google::get_tile_col_row(geo_point world_coord, int zoom)
 {
-	qDebug() << world_coord.latitude() << world_coord.longitude();
+	//qDebug() << world_coord.lat() << world_coord.lon();
 
-	int col = lon_to_width(world_coord.longitude(), zoom) / GOOGLE_TILE_WIDTH;
-	int row = lat_to_height(world_coord.latitude(), zoom) / GOOGLE_TILE_HEIGHT;
+	int col = lon_to_width(world_coord.lon(), zoom) / GOOGLE_TILE_WIDTH;
+	int row = lat_to_height(world_coord.lat(), zoom) / GOOGLE_TILE_HEIGHT;
 
 	return QPoint(col, row);
 }
@@ -94,7 +94,7 @@ tiler::tiles_t tiler_google::get_tiles_for(QPointF tl, QPointF br, int zoom)
 	//right = clamp(right, 0, tile_count);
 	bottom = clamp(bottom, 0, tile_count);
 
-	qDebug() <<  right - left << "x" << bottom - top;
+	//qDebug() <<  right - left << "x" << bottom - top;
 
 	for(int i = left ; i < right ; i += 1)
 	{
@@ -114,17 +114,17 @@ tiler::tiles_t tiler_google::get_tiles_for(QPointF tl, QPointF br, int zoom)
 			double w = tile_size * tile_count;
 
 			tile::rect_t rect;
-			rect.push_back(QGeoCoordinate(p.y_to_lat(height / w), p.x_to_lon(width / w)));
-			rect.push_back(QGeoCoordinate(p.y_to_lat(height / w), p.x_to_lon((width + tile_size) / w)));
-			rect.push_back(QGeoCoordinate(p.y_to_lat((height + tile_size) / w), p.x_to_lon((width + tile_size) / w)));
-			rect.push_back(QGeoCoordinate(p.y_to_lat((height + tile_size) / w), p.x_to_lon(width / w)));
+			rect.push_back(geo_point(p.y_to_lat(height / w), p.x_to_lon(width / w)));
+			rect.push_back(geo_point(p.y_to_lat(height / w), p.x_to_lon((width + tile_size) / w)));
+			rect.push_back(geo_point(p.y_to_lat((height + tile_size) / w), p.x_to_lon((width + tile_size) / w)));
+			rect.push_back(geo_point(p.y_to_lat((height + tile_size) / w), p.x_to_lon(width / w)));
 
 			t.set_rect(rect);
 
 			res.push_back(t);
 		}
 	}
-	qDebug() << res.size();
+	//qDebug() << res.size();
 
 	return res;
 }
@@ -144,10 +144,10 @@ double tiler_google::get_base_tile_size() const
 	return 256.0;
 }
 
-tiler::tiles_t tiler_google::get_tiles_for(QGeoCoordinate gtl, QGeoCoordinate gbr, int zoom)
+tiler::tiles_t tiler_google::get_tiles_for(geo_point gtl, geo_point gbr, int zoom)
 {
-	QPointF tl(p.lon_to_x(gtl.longitude()), p.lat_to_y(clamp(gtl.latitude(), -1.4, 1.4)));
-	QPointF br(p.lon_to_x(gbr.longitude()), p.lat_to_y(clamp(gbr.latitude(), -1.4, 1.4)));
+	QPointF tl(p.lon_to_x(gtl.lon()), p.lat_to_y(clamp(gtl.lat(), -1.4, 1.4)));
+	QPointF br(p.lon_to_x(gbr.lon()), p.lat_to_y(clamp(gbr.lat(), -1.4, 1.4)));
 	return get_tiles_for(tl, br, zoom);
 }
 

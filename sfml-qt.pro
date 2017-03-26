@@ -26,7 +26,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp \
     QSFMLCanvas.cpp \
     tiler.cpp \
-	tiler_google.cpp
+	tiler_google.cpp \
+    texture_cache.cpp \
+    map_view.cpp
 
 HEADERS  += \
     QSFMLCanvas.h \
@@ -35,6 +37,10 @@ HEADERS  += \
     texture_cache.h \
     projector.h \
     projector_spheric.h \
-    projector_elliptic.h
+    projector_elliptic.h \
+    map_view.h \
+    additional_math.h \
+    geo_point.h \
+    main_widget.h
 
 LIBS += -lsfml-window -lsfml-graphics -lcurl -lsfml-system

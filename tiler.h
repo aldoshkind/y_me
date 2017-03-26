@@ -3,12 +3,13 @@
 #include <QPointF>
 #include <QString>
 #include <QVector>
-#include <QGeoCoordinate>
+
+#include "geo_point.h"
 
 class tile
 {
 public:
-	typedef std::vector<QGeoCoordinate>		rect_t;
+	typedef std::vector<geo_point>		rect_t;
 
 private:
 	QPointF						coord;
@@ -42,7 +43,7 @@ public:
 	virtual double				get_tile_size		(int zoom) const = 0;
 	virtual double				get_base_tile_size	() const = 0;
 	virtual QString				get_url				(int col, int row, int zoom) const = 0;
-	virtual tiles_t				get_tiles_for		(QGeoCoordinate tl, QGeoCoordinate br, int zoom) = 0;
+	virtual tiles_t				get_tiles_for		(geo_point tl, geo_point br, int zoom) = 0;
 	virtual tiles_t				get_tiles_for		(double lon_left, double lon_right, double lat_top, double lat_bottom, int zoom) = 0;
 
 private:
