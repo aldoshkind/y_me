@@ -29,7 +29,15 @@ QPoint						tile::get_col_row			() const
 	return colrow;
 }
 
+tile::rect_t				tile::get_rect				() const
+{
+	return rect;
+}
 
+void						tile::set_rect				(rect_t rect)
+{
+	this->rect = rect;
+}
 
 
 

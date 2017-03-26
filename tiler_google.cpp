@@ -4,7 +4,6 @@
 
 #include "math_common.h"
 
-// returns value closest to v which is in [lower, upper]
 template <class value_type>
 inline value_type clamp(const value_type &v, const value_type &lower, const value_type &upper)
 {
@@ -81,8 +80,8 @@ tiler::tiles_t tiler_google::get_tiles_for(QPointF tl, QPointF br, int zoom)
 {
 	tiles_t res;
 
-	double tile_size = get_tile_size(zoom);
-	int tile_count = get_base_tile_size() / tile_size;
+	double tile_size = get_tile_size(zoom) / get_base_tile_size();
+	int tile_count = get_base_tile_size() / get_tile_size(zoom);
 
 	int bottom = br.y() / tile_size + 1;
 	int top = tl.y() / tile_size;
@@ -103,7 +102,7 @@ tiler::tiles_t tiler_google::get_tiles_for(QPointF tl, QPointF br, int zoom)
 		{
 			tile t;
 			double width = i * tile_size;
-			double height = -j * tile_size;
+			double height = j * tile_size;
 
 			t.set_coordinates(QPointF(width, height));
 
@@ -112,11 +111,13 @@ tiler::tiles_t tiler_google::get_tiles_for(QPointF tl, QPointF br, int zoom)
 
 			t.set_col_row(QPoint(col, row));
 
+			double w = tile_size * tile_count;
+
 			tile::rect_t rect;
-			rect.push_back(QGeoCoordinate(p.y_to_lat(height), p.x_to_lon(width)));
-			rect.push_back(QGeoCoordinate(p.y_to_lat(height), p.x_to_lon(width + tile_size)));
-			rect.push_back(QGeoCoordinate(p.y_to_lat(height + tile_size), p.x_to_lon(width + tile_size)));
-			rect.push_back(QGeoCoordinate(p.y_to_lat(height + tile_size), p.x_to_lon(width)));
+			rect.push_back(QGeoCoordinate(p.y_to_lat(height / w), p.x_to_lon(width / w)));
+			rect.push_back(QGeoCoordinate(p.y_to_lat(height / w), p.x_to_lon((width + tile_size) / w)));
+			rect.push_back(QGeoCoordinate(p.y_to_lat((height + tile_size) / w), p.x_to_lon((width + tile_size) / w)));
+			rect.push_back(QGeoCoordinate(p.y_to_lat((height + tile_size) / w), p.x_to_lon(width / w)));
 
 			t.set_rect(rect);
 
@@ -145,7 +146,14 @@ double tiler_google::get_base_tile_size() const
 
 tiler::tiles_t tiler_google::get_tiles_for(QGeoCoordinate gtl, QGeoCoordinate gbr, int zoom)
 {
-	QPointF tl(p.lon_to_x(gtl.longitude()), p.lat_to_y(gtl.latitude()));
-	QPointF br(p.lon_to_x(gbr.longitude()), p.lat_to_y(gbr.latitude()));
+	QPointF tl(p.lon_to_x(gtl.longitude()), p.lat_to_y(clamp(gtl.latitude(), -1.4, 1.4)));
+	QPointF br(p.lon_to_x(gbr.longitude()), p.lat_to_y(clamp(gbr.latitude(), -1.4, 1.4)));
+	return get_tiles_for(tl, br, zoom);
+}
+
+tiler::tiles_t tiler_google::get_tiles_for(double lon_left, double lon_right, double lat_top, double lat_bottom, int zoom)
+{
+	QPointF tl(p.lon_to_x(lon_left), p.lat_to_y(clamp(lat_top, -1.48, 1.48)));
+	QPointF br(p.lon_to_x(lon_right), p.lat_to_y(clamp(lat_bottom, -1.48, 1.48)));
 	return get_tiles_for(tl, br, zoom);
 }

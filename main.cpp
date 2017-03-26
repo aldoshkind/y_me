@@ -23,6 +23,12 @@
 
 #define RAD(x) (x / 180.0 * M_PI)
 
+template <class value_type>
+inline value_type clamp(const value_type &v, const value_type &lower, const value_type &upper)
+{
+	return v > upper ? upper : (v < lower ? lower : v);
+}
+
 class sfml_rel : public QSFMLCanvas
 {
 	sf::Sprite			sprite;
@@ -44,9 +50,13 @@ class sfml_rel : public QSFMLCanvas
 
 	projector_spheric	proj;
 
+	sf::VertexArray		view_rect;
+
 	void				update_view			()
 	{
 		calculate_zoom();
+
+		sf::Vector2f c = view.getCenter();
 
 		sf::Vector2f tl = mapPixelToCoords(sf::Vector2i(0, 0), view);
 		sf::Vector2f bl = mapPixelToCoords(sf::Vector2i(0, height()), view);
@@ -63,7 +73,15 @@ class sfml_rel : public QSFMLCanvas
 		double lon_left = proj.x_to_lon(left / 100);
 		double lon_right = proj.x_to_lon(right / 100);
 
-		tiles = tg.get_tiles_for(QGeoCoordinate(lat_top, lon_left), QGeoCoordinate(lat_bottom, lon_right), last_zoom);
+		view_rect.clear();
+
+		view_rect.append(sf::Vertex(sf::Vector2f(lon_left, clamp(lat_top, -1.48, 1.48))));
+		view_rect.append(sf::Vertex(sf::Vector2f(lon_right, clamp(lat_top, -1.48, 1.48))));
+		view_rect.append(sf::Vertex(sf::Vector2f(lon_right, clamp(lat_bottom, -1.48, 1.48))));
+		view_rect.append(sf::Vertex(sf::Vector2f(lon_left, clamp(lat_bottom, -1.48, 1.48))));
+		view_rect.append(sf::Vertex(sf::Vector2f(lon_left, clamp(lat_top, -1.48, 1.48))));
+
+		tiles = tg.get_tiles_for(lon_left, lon_right, lat_top, lat_bottom, last_zoom);
 	}
 
 	void				mousePressEvent		(QMouseEvent *event)
@@ -182,6 +200,8 @@ public:
 
 		font.loadFromFile("/home/dmitry/yandex_disk/programming/sfml_test/antiqua.ttf");
 
+		view.setCenter(0, 50);
+
 		update_view();
 	}
 
@@ -199,29 +219,37 @@ public:
 
 			sf::VertexArray va(sf::TrianglesFan, 4);
 
-			double x = tiles[i].get_coordinates().x();
-			double y = tiles[i].get_coordinates().y();
-			double w = tg.get_tile_size(last_zoom);
-			double h = tg.get_tile_size(last_zoom);
+			tile::rect_t r = tiles[i].get_rect();
 
-			va[0].position = sf::Vector2f(x, -y);
-			va[1].position = sf::Vector2f(x, -y + h);
-			va[2].position = sf::Vector2f(x + w, -y + h);
-			va[3].position = sf::Vector2f(x + w, -y);
+			double x = 1 - proj.lon_to_x(r[1].longitude());
+			double y = 1 - proj.lat_to_y(r[1].latitude());
+
+			va[0].position = sf::Vector2f(proj.lon_to_x(r[0].longitude()) * 100, proj.lat_to_y(r[0].latitude()) * 100);
+			va[1].position = sf::Vector2f(proj.lon_to_x(r[1].longitude()) * 100, proj.lat_to_y(r[1].latitude()) * 100);
+			va[2].position = sf::Vector2f(proj.lon_to_x(r[2].longitude()) * 100, proj.lat_to_y(r[2].latitude()) * 100);
+			va[3].position = sf::Vector2f(proj.lon_to_x(r[3].longitude()) * 100, proj.lat_to_y(r[3].latitude()) * 100);
 
 			va[0].texCoords = sf::Vector2f(0, 0);
-			va[1].texCoords = sf::Vector2f(0, 256);
+			va[1].texCoords = sf::Vector2f(256, 0);
 			va[2].texCoords = sf::Vector2f(256, 256);
-			va[3].texCoords = sf::Vector2f(256, 0);
+			va[3].texCoords = sf::Vector2f(0, 256);
 
 			sf::RenderStates rs;
 			rs.texture = t;
 			draw(va, rs);
-			//draw(&va[0], 4, sf::LinesStrip);
-
-			char buf[64] = {0};
-			snprintf(buf, sizeof(buf), "%d %d", col, row);
+			draw(&va[0], 4, sf::LinesStrip);
 		}
+
+		sf::VertexArray va;
+
+		va.append(sf::Vector2f(proj.lon_to_x(view_rect[0].position.x) + 10, proj.lat_to_y(view_rect[0].position.y) * 100));
+		va.append(sf::Vector2f(proj.lon_to_x(view_rect[1].position.x) - 10, proj.lat_to_y(view_rect[1].position.y) * 100));
+		va.append(sf::Vector2f(proj.lon_to_x(view_rect[2].position.x) - 10, proj.lat_to_y(view_rect[2].position.y) * 100));
+		va.append(sf::Vector2f(proj.lon_to_x(view_rect[3].position.x) + 10, proj.lat_to_y(view_rect[3].position.y) * 100));
+		va.append(sf::Vector2f(proj.lon_to_x(view_rect[4].position.x) + 10, proj.lat_to_y(view_rect[4].position.y) * 100));
+
+		draw(&va[0],  5, sf::LinesStrip);
+
 
 		display();
 	}

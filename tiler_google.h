@@ -26,6 +26,7 @@ public:
 	QString						get_name			();
 	tiles_t						get_tiles_for		(QPointF tl, QPointF br, int zoom);
 	tiles_t						get_tiles_for		(QGeoCoordinate tl, QGeoCoordinate br, int zoom);
+	tiles_t						get_tiles_for		(double lon_left, double lon_right, double lat_top, double lat_bottom, int zoom);
 	double						get_tile_size		(int zoom) const;
 	double						get_base_tile_size	() const;
 	QString						get_url				(int col, int row, int zoom) const;
