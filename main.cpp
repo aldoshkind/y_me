@@ -19,6 +19,7 @@
 
 #include "tiler_google.h"
 #include "texture_cache.h"
+#include "projector_spheric.h"
 
 #define RAD(x) (x / 180.0 * M_PI)
 
@@ -37,21 +38,15 @@ class sfml_rel : public QSFMLCanvas
 
 	int					last_zoom;
 	sf::Font			font;
-	QVector<tile>		tiles;
+	tiler::tiles_t		tiles;
 
 	texture_cache		tc;
+
+	projector_spheric	proj;
 
 	void				update_view			()
 	{
 		calculate_zoom();
-
-		/*sf::Vector2f c = view.getCenter();
-		sf::Vector2f sz = view.getSize();
-
-		double top = c.y - sz.y / 2.0;
-		double left = c.x - sz.x / 2.0;
-		double right = c.x + sz.x / 2.0;
-		double bottom = c.y + sz.y / 2.0;*/
 
 		sf::Vector2f tl = mapPixelToCoords(sf::Vector2i(0, 0), view);
 		sf::Vector2f bl = mapPixelToCoords(sf::Vector2i(0, height()), view);
@@ -63,8 +58,12 @@ class sfml_rel : public QSFMLCanvas
 		double left = std::min(tl.x, std::min(bl.x, std::min(br.x, tr.x)));
 		double right = std::max(tl.x, std::max(bl.x, std::max(br.x, tr.x)));
 
+		double lat_top = proj.y_to_lat(top / 100);
+		double lat_bottom = proj.y_to_lat(bottom / 100);
+		double lon_left = proj.x_to_lon(left / 100);
+		double lon_right = proj.x_to_lon(right / 100);
 
-		tiles = tg.get_tiles_for(QPointF(left, top), QPointF(right, bottom), last_zoom);
+		tiles = tg.get_tiles_for(QGeoCoordinate(lat_top, lon_left), QGeoCoordinate(lat_bottom, lon_right), last_zoom);
 	}
 
 	void				mousePressEvent		(QMouseEvent *event)

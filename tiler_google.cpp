@@ -4,11 +4,6 @@
 
 #include "math_common.h"
 
-extern "C"
-{
-#include "math_spheric.h"
-}
-
 // returns value closest to v which is in [lower, upper]
 template <class value_type>
 inline value_type clamp(const value_type &v, const value_type &lower, const value_type &upper)
@@ -35,18 +30,18 @@ double tiler_google::width_to_lon(double width, int zoom)
 double tiler_google::height_to_lat(double height, int zoom)
 {
 	height = height / (GOOGLE_TILE_HEIGHT * pow(2, zoom));
-	return DEG(spheric_height_to_lat(height));
+	return DEG(p.y_to_lat(height));
 }
 
 double tiler_google::lon_to_width(double lon, int zoom)
 {
-	double width = spheric_lon_to_width(RAD(lon));
+	double width = p.lon_to_x(RAD(lon));
 	return GOOGLE_TILE_WIDTH * pow(2.0, zoom) * width;
 }
 
 double tiler_google::lat_to_height(double lat, int zoom)
 {
-	double height = spheric_lat_to_height(RAD(lat));
+	double height = p.lat_to_y(RAD(lat));
 	return GOOGLE_TILE_HEIGHT * pow(2.0, zoom) * height;
 }
 
@@ -82,9 +77,9 @@ QString tiler_google::get_url(int col, int row, int zoom) const
 	return QString("http://mt.google.com/vt/lyrs=s&hl=ru&x=%1&y=%2&z=%3").arg(col).arg(row).arg(zoom);
 }
 
-QVector<tile> tiler_google::get_tiles_for(QPointF tl, QPointF br, int zoom)
+tiler::tiles_t tiler_google::get_tiles_for(QPointF tl, QPointF br, int zoom)
 {
-	QVector<tile> res;
+	tiles_t res;
 
 	double tile_size = get_tile_size(zoom);
 	int tile_count = get_base_tile_size() / tile_size;
@@ -116,6 +111,15 @@ QVector<tile> tiler_google::get_tiles_for(QPointF tl, QPointF br, int zoom)
 			int row = ((abs(j) / tile_count + 1) * tile_count + j) % tile_count;
 
 			t.set_col_row(QPoint(col, row));
+
+			tile::rect_t rect;
+			rect.push_back(QGeoCoordinate(p.y_to_lat(height), p.x_to_lon(width)));
+			rect.push_back(QGeoCoordinate(p.y_to_lat(height), p.x_to_lon(width + tile_size)));
+			rect.push_back(QGeoCoordinate(p.y_to_lat(height + tile_size), p.x_to_lon(width + tile_size)));
+			rect.push_back(QGeoCoordinate(p.y_to_lat(height + tile_size), p.x_to_lon(width)));
+
+			t.set_rect(rect);
+
 			res.push_back(t);
 		}
 	}
@@ -137,4 +141,11 @@ double tiler_google::get_tile_size(int zoom) const
 double tiler_google::get_base_tile_size() const
 {
 	return 256.0;
+}
+
+tiler::tiles_t tiler_google::get_tiles_for(QGeoCoordinate gtl, QGeoCoordinate gbr, int zoom)
+{
+	QPointF tl(p.lon_to_x(gtl.longitude()), p.lat_to_y(gtl.latitude()));
+	QPointF br(p.lon_to_x(gbr.longitude()), p.lat_to_y(gbr.latitude()));
+	return get_tiles_for(tl, br, zoom);
 }

@@ -19,11 +19,6 @@ void						tile::set_col_row			(QPoint col_row)
 	colrow = col_row;
 }
 
-void						tile::set_url				(QString u)
-{
-	url = u;
-}
-
 QPointF						tile::get_coordinates		() const
 {
 	return coord;
@@ -32,11 +27,6 @@ QPointF						tile::get_coordinates		() const
 QPoint						tile::get_col_row			() const
 {
 	return colrow;
-}
-
-QString						tile::get_url				() const
-{
-	return "ass";
 }
 
 

@@ -26,9 +26,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp \
     QSFMLCanvas.cpp \
     tiler.cpp \
-    tiler_google.cpp \
-    math_elliptic.c \
-    math_spheric.c
+	tiler_google.cpp
 
 HEADERS  += \
     QSFMLCanvas.h \
