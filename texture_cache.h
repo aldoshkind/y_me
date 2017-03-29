@@ -58,7 +58,7 @@ public:
 	/*destructor*/			~texture_cache			();
 
 	void					set_tiler				(tiler *t);
-	QString					download_img			(tiler *t, int col, int row, int zoom);
+	QString					download_img			(int col, int row, int zoom);
 	sf::Texture				*get_texture			(int col, int row, int zoom);
 	void					loader					();
 };

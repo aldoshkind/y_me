@@ -15,12 +15,12 @@ public:
 		//
 	}
 
-	double					x_to_lon				(double x)
+	double					x_to_lon				(double x) const
 	{
 		return x / ((1 / 2.0) * (1 / M_PI)) - M_PI;
 	}
 
-	double					y_to_lat				(double y)
+	double					y_to_lat				(double y) const
 	{
 		double ts = exp(y / ((1 / 2.0) * (1 / M_PI)) - M_PI);
 		double phi = M_PI_2 - 2.0 * atan(ts);
@@ -40,12 +40,12 @@ public:
 		return phi;
 	}
 
-	double					lon_to_x				(double lon)
+	double					lon_to_x				(double lon) const
 	{
 		return (1.0 / 2.0) * (1.0 / M_PI) * (lon + M_PI);
 	}
 
-	double					lat_to_y				(double lat)
+	double					lat_to_y				(double lat) const
 	{
 		// b - малая полуось, а - большая.
 		double a = 6378137.000;

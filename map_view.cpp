@@ -35,30 +35,26 @@ void map_view::update_view()
 	double left = std::min(tl.x, std::min(bl.x, std::min(br.x, tr.x)));
 	double right = std::max(tl.x, std::max(bl.x, std::max(br.x, tr.x)));
 
-	double lat_top = proj.y_to_lat(top / SCALE_COEF);
-	double lat_bottom = proj.y_to_lat(bottom / SCALE_COEF);
-	double lon_left = proj.x_to_lon(left / SCALE_COEF);
-	double lon_right = proj.x_to_lon(right / SCALE_COEF);
+	geo_point north_west = to_geo(sf::Vector2f(left, top));
+	geo_point south_east = to_geo(sf::Vector2f(right, bottom));
 
-	tiles = tg.get_tiles_for(lon_left, lon_right, lat_top, lat_bottom, zoom);
+	tiles = tg.get_tiles_for(north_west.lon(), south_east.lon(), north_west.lat(), south_east.lat(), zoom);
 }
 
 void map_view::mousePressEvent(QMouseEvent *event)
 {
+	sf::Vector2i pos(event->x(), event->y());
+	sf::Vector2f viewpos = mapPixelToCoords(pos, view);
+	geo_point gp(proj.y_to_lat(viewpos.y), proj.x_to_lon(viewpos.x));
+	emit signal_mouse_press(gp);
 	if(event->button() == Qt::MiddleButton)
 	{
 		move = true;
-		mouse_last_pos.x = event->x();
-		mouse_last_pos.y = event->y();
+		mouse_pos = pos;
 	}
 	if(event->button() == Qt::LeftButton)
 	{
-		sf::Vector2i pi;
-		pi.x = event->x();
-		pi.y = event->y();
-
-		sf::Vector2f p = mapPixelToCoords(pi, view);
-		s.setPosition(p.x - s.getGlobalBounds().width / 2.0, p.y - s.getGlobalBounds().height / 2.0);
+		s.setPosition(viewpos.x - s.getGlobalBounds().width / 2.0, viewpos.y - s.getGlobalBounds().height / 2.0);
 	}
 }
 
@@ -118,24 +114,28 @@ void map_view::resizeEvent(QResizeEvent *)
 
 void map_view::mouseMoveEvent(QMouseEvent *event)
 {
-	sf::Vector2f c = mapPixelToCoords(sf::Vector2i(event->x(), event->y()), view);
+	sf::Vector2i pos(event->x(), event->y());
+	sf::Vector2f viewpos = mapPixelToCoords(pos, view);
 	if(move == true)
 	{
-		sf::Vector2f l = mapPixelToCoords(mouse_last_pos, view);
+		sf::Vector2f l = mapPixelToCoords(mouse_pos, view);
 
-		view.move(l - c);
+		view.move(l - viewpos);
 
-		mouse_last_pos.x = event->x();
-		mouse_last_pos.y = event->y();
+		mouse_pos.x = event->x();
+		mouse_pos.y = event->y();
 
 		update_view();
 	}
 
-	emit signal_mouse_move(geo_point(proj.y_to_lat(c.y / SCALE_COEF), proj.x_to_lon(c.x / SCALE_COEF)));
+	emit signal_mouse_move(to_geo(viewpos));
 }
 
-void map_view::mouseReleaseEvent(QMouseEvent *)
+void map_view::mouseReleaseEvent(QMouseEvent *event)
 {
+	sf::Vector2i pos(event->x(), event->y());
+	sf::Vector2f viewpos = mapPixelToCoords(pos, view);
+	emit signal_mouse_release(to_geo(viewpos));
 	move = false;
 }
 
@@ -175,10 +175,10 @@ void map_view::OnUpdate()
 
 		tile::rect_t r = tiles[i].get_rect();
 
-		va[0].position = sf::Vector2f(proj.lon_to_x(r[0].lon()) * SCALE_COEF, proj.lat_to_y(r[0].lat()) * SCALE_COEF);
-		va[1].position = sf::Vector2f(proj.lon_to_x(r[1].lon()) * SCALE_COEF, proj.lat_to_y(r[1].lat()) * SCALE_COEF);
-		va[2].position = sf::Vector2f(proj.lon_to_x(r[2].lon()) * SCALE_COEF, proj.lat_to_y(r[2].lat()) * SCALE_COEF);
-		va[3].position = sf::Vector2f(proj.lon_to_x(r[3].lon()) * SCALE_COEF, proj.lat_to_y(r[3].lat()) * SCALE_COEF);
+		va[0].position = to_view(r[0]);
+		va[1].position = to_view(r[1]);
+		va[2].position = to_view(r[2]);
+		va[3].position = to_view(r[3]);
 
 		va[0].texCoords = sf::Vector2f(0, 0);
 		va[1].texCoords = sf::Vector2f(256, 0);
@@ -202,10 +202,20 @@ int map_view::calculate_zoom()
 	tile_count = ceil(tile_count);
 	double z = log2(tile_count);
 
-	qDebug() << tile_count << z << w;
+	//qDebug() << tile_count << z << w;
 
 	zoom = ceil(z);
 	zoom = zoom < 0 ? 0 : zoom > 20 ? 20 : zoom;
 
 	return zoom;
+}
+
+geo_point map_view::to_geo(const sf::Vector2f &view_coord) const
+{
+	return geo_point(proj.y_to_lat(view_coord.y / SCALE_COEF), proj.x_to_lon(view_coord.x /SCALE_COEF));
+}
+
+sf::Vector2f map_view::to_view(const geo_point &gp) const
+{
+	return sf::Vector2f(proj.lon_to_x(gp.lon()) * SCALE_COEF, proj.lat_to_y(gp.lat()) * SCALE_COEF);
 }

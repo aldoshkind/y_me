@@ -47,10 +47,10 @@ void texture_cache::set_tiler(tiler *t)
 	this->t = t;
 }
 
-QString texture_cache::download_img(tiler *t, int col, int row, int zoom)
+QString texture_cache::download_img(int col, int row, int zoom)
 {
 	QString path = get_url(tile_coord(col, row, zoom));
-	qDebug() << path;
+	//qDebug() << path;
 
 	if(access(path.toUtf8().data(), F_OK) == 0)
 	{
@@ -129,7 +129,7 @@ void texture_cache::loader()
 			queue.pop_front();
 			mutex.unlock();
 
-			QString path = download_img(t, tc.col, tc.row, tc.zoom);
+			QString path = download_img(tc.col, tc.row, tc.zoom);
 			texs[tc.col][tc.row][tc.zoom].loadFromFile(path.toStdString());
 
 			mutex.lock();

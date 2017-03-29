@@ -24,7 +24,7 @@ class map_view : public QSFMLCanvas
 	tiler_google		tg;
 
 	bool				move;
-	sf::Vector2i		mouse_last_pos;
+	sf::Vector2i		mouse_pos;
 
 	int					zoom;
 
@@ -33,6 +33,9 @@ class map_view : public QSFMLCanvas
 	projector_spheric	proj;
 
 	sf::VertexArray		view_rect;
+
+	geo_point			to_geo				(const sf::Vector2f &view_coord) const;
+	sf::Vector2f		to_view				(const geo_point &gp) const;
 
 	void				update_view			();
 	void				mousePressEvent		(QMouseEvent *event);
@@ -53,4 +56,6 @@ public:
 signals:
 	void				signal_mouse_move	(geo_point gp);
 	void				signal_zoom_level	(int zoom);
+	void				signal_mouse_press	(geo_point gp);
+	void				signal_mouse_release(geo_point gp);
 };
