@@ -1,5 +1,12 @@
 #include "texture_cache.h"
 
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+
+#include <QDebug>
+#include <QFile>
+
 /*constructor*/ texture_cache::texture_cache()
 {
 	last_zoom = 0;
@@ -20,17 +27,30 @@ void texture_cache::enqueue(int col, int row, int zoom)
 	const QString &path = get_url(tile_coord(col, row, zoom));
 	if(file_exists(path))
 	{
+		qDebug() << "loading" << path;
 		texs[col][row][zoom].loadFromFile(path.toStdString());
+		return;
 	}
 
 	mutex.lock();
+
+	tile_coord tc(col, row, zoom);
+
+	if(current_queue_items.find(tc) != current_queue_items.end())
+	{
+		mutex.unlock();
+		return;
+	}
+
 	if(last_zoom != zoom)
 	{
 		queue_t q;
 		std::swap(q, queue);
+		current_queue_items.clear();
 	}
 	last_zoom = zoom;
-	queue.push_front(tile_coord(col, row, zoom));
+	queue.push_front(tc);
+	current_queue_items.insert(tc);
 	mutex.unlock();
 	condvar.wakeOne();
 }
@@ -50,6 +70,7 @@ void texture_cache::set_tiler(tiler *t)
 QString texture_cache::download_img(int col, int row, int zoom)
 {
 	QString path = get_url(tile_coord(col, row, zoom));
+	qDebug() << "download" << path;
 	//qDebug() << path;
 
 	if(access(path.toUtf8().data(), F_OK) == 0)
@@ -59,7 +80,9 @@ QString texture_cache::download_img(int col, int row, int zoom)
 
 	QString url = t->get_url(col, row, zoom);
 
-	FILE *out_file = fopen(path.toUtf8().data(), "wb");
+	QString tmp_path = "/tmp/tx.tmp";
+
+	FILE *out_file = fopen(tmp_path.toUtf8().data(), "wb");
 
 	if(out_file == NULL)
 	{
@@ -87,6 +110,12 @@ QString texture_cache::download_img(int col, int row, int zoom)
 	curl_easy_cleanup(curl);
 
 	fclose(out_file);
+
+	//int rename_result = rename(tmp_path.toStdString().c_str(), path.toStdString().c_str());
+
+	bool copy_succeded = QFile::copy(tmp_path, path);
+
+	qDebug() << "download" << path << "finished" << (copy_succeded ? "successfully" : "unsuccessfully");
 
 	return path;
 }
@@ -127,6 +156,7 @@ void texture_cache::loader()
 			mutex.lock();
 			tile_coord tc = queue.front();
 			queue.pop_front();
+			current_queue_items.erase(tc);
 			mutex.unlock();
 
 			QString path = download_img(tc.col, tc.row, tc.zoom);

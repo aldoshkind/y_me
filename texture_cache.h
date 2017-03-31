@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <set>
 
 #include <unistd.h>
 
@@ -39,16 +40,39 @@ class texture_cache : public QThread
 			row = r;
 			zoom = z;
 		}
+
+		bool					operator <			(const tile_coord &op) const
+		{
+			if(col < op.col)
+			{
+				return true;
+			}
+			if(col == op.col)
+			{
+				if(row < op.row)
+				{
+					return true;
+				}
+				if(row == op.row)
+				{
+					return zoom < op.zoom;
+				}
+			}
+			return false;
+		}
 	};
-
-	QString					get_url					(tile_coord c);
-
-	bool					file_exists				(QString path);
 
 	typedef std::deque<tile_coord>		queue_t;
 	queue_t								queue;
 
+	typedef std::set<tile_coord>		current_queue_items_t;
+	current_queue_items_t				current_queue_items;
+
 	int						last_zoom;
+
+	QString					get_url					(tile_coord c);
+
+	bool					file_exists				(QString path);
 
 	void					enqueue					(int col, int row, int zoom);
 	void					run						();

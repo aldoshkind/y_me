@@ -1,12 +1,12 @@
 #include "map_view.h"
 
-#define SCALE_COEF 1000.0
-
-/*constructor*/ map_view::map_view(QWidget *parent) : QSFMLCanvas(parent)
+/*constructor*/ map_view::map_view(QWidget *parent) : QSFMLCanvas(parent), gn(&s)
 {
 	move = false;
 	setMouseTracking(true);
 	tc.set_tiler(&tg);
+	proj.set_scale(100.0);
+	s.set_scale_dependent(true);
 
 	static bool registered = false;
 	if(registered == false)
@@ -54,7 +54,8 @@ void map_view::mousePressEvent(QMouseEvent *event)
 	}
 	if(event->button() == Qt::LeftButton)
 	{
-		s.setPosition(viewpos.x - s.getGlobalBounds().width / 2.0, viewpos.y - s.getGlobalBounds().height / 2.0);
+		//s.setPosition(viewpos.x/* - s.getGlobalBounds().width / 2.0*/, viewpos.y/* - s.getGlobalBounds().height / 2.0*/);
+		gn.set_geopoint(to_geo(viewpos));
 	}
 }
 
@@ -151,8 +152,16 @@ void map_view::OnInit()
 	sf::Vector2i pos;
 
 	t.loadFromFile("/home/dmitry/yandex_disk/programming/sfml_test/settings2.png");
-	s = sf::Sprite(t);
+	s.setTexture(t, true);
 	calculate_zoom();
+	s.setOrigin(64,64);
+//	s.set_scale_dependent(true);
+
+	t_child.loadFromFile("/home/dmitry/yandex_disk/programming/sfml_test/settings.png");
+	s_child.setTexture(t_child, true);
+	//s_child.setOrigin(64,64);
+
+	s.add_child(&s_child);
 
 	view.setCenter(0, 50);
 
@@ -188,15 +197,19 @@ void map_view::OnUpdate()
 		sf::RenderStates rs;
 		rs.texture = t;
 		draw(va, rs);
-		//draw(&va[0], 4, sf::LinesStrip);
 	}
+
+	s_child.rotate(0.1);
+
+	gn.map(proj);
+	s.render(*this);
 
 	display();
 }
 
 int map_view::calculate_zoom()
 {
-	double w = view.getSize().x / SCALE_COEF;
+	double w = view.getSize().x / proj.get_scale();
 	double resolution = width() / w;
 	double tile_count = resolution / tg.get_base_tile_size();
 	tile_count = ceil(tile_count);
@@ -212,10 +225,10 @@ int map_view::calculate_zoom()
 
 geo_point map_view::to_geo(const sf::Vector2f &view_coord) const
 {
-	return geo_point(proj.y_to_lat(view_coord.y / SCALE_COEF), proj.x_to_lon(view_coord.x /SCALE_COEF));
+	return geo_point(proj.y_to_lat(view_coord.y), proj.x_to_lon(view_coord.x));
 }
 
 sf::Vector2f map_view::to_view(const geo_point &gp) const
 {
-	return sf::Vector2f(proj.lon_to_x(gp.lon()) * SCALE_COEF, proj.lat_to_y(gp.lat()) * SCALE_COEF);
+	return sf::Vector2f(proj.lon_to_x(gp.lon()), proj.lat_to_y(gp.lat()));
 }

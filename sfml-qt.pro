@@ -41,6 +41,10 @@ HEADERS  += \
     map_view.h \
     additional_math.h \
     geo_point.h \
-    main_widget.h
+    main_widget.h \
+    render_node.h \
+    geo_object.h \
+    geo_node.h \
+    route.h
 
 LIBS += -lsfml-window -lsfml-graphics -lcurl -lsfml-system

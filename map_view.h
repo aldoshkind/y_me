@@ -8,6 +8,8 @@
 #include "projector_spheric.h"
 #include "tiler_google.h"
 #include "additional_math.h"
+#include "render_node.h"
+#include "geo_node.h"
 
 Q_DECLARE_METATYPE(geo_point)
 
@@ -19,7 +21,12 @@ class map_view : public QSFMLCanvas
 	sf::View			view;
 	sf::Texture			texture;
 	sf::Texture			t;
-	sf::Sprite			s;
+
+	geo_node			gn;
+	//sf::Sprite			s;
+	sprite_node			s;
+	sf::Texture			t_child;
+	sprite_node			s_child;
 
 	tiler_google		tg;
 
