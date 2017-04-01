@@ -28,7 +28,10 @@ SOURCES += main.cpp \
     tiler.cpp \
 	tiler_google.cpp \
     texture_cache.cpp \
-    map_view.cpp
+    map_view.cpp \
+    tree/filepath_utils.cpp \
+    tree/resource.cpp \
+    tree/widget.cpp
 
 HEADERS  += \
     QSFMLCanvas.h \
@@ -45,6 +48,13 @@ HEADERS  += \
     render_node.h \
     geo_object.h \
     geo_node.h \
-    route.h
+    route.h \
+    tree/event_printer.h \
+    tree/filepath_utils.h \
+    tree/node.h \
+    tree/resource.h \
+    tree/sinus_generator.h \
+    tree/tree_node.h \
+    tree/widget.h
 
-LIBS += -lsfml-window -lsfml-graphics -lcurl -lsfml-system
+LIBS += -lsfml-window -lsfml-graphics -lcurl -lsfml-system -ljsoncpp

@@ -129,6 +129,8 @@ void map_view::mouseMoveEvent(QMouseEvent *event)
 		update_view();
 	}
 
+	rt.mouse(viewpos);
+
 	emit signal_mouse_move(to_geo(viewpos));
 }
 
@@ -203,6 +205,8 @@ void map_view::OnUpdate()
 
 	gn.map(proj);
 	s.render(*this);
+
+	rt.draw(*this, &proj);
 
 	display();
 }

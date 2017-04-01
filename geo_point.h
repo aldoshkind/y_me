@@ -25,4 +25,14 @@ public:
 	{
 		return ln;
 	}
+
+	void						set_lat					(double l)
+	{
+		lt = l;
+	}
+
+	void						set_lon					(double l)
+	{
+		ln = l;
+	}
 };

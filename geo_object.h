@@ -20,7 +20,7 @@ public:
 		//
 	}
 
-	geo_point				get_geopoint			() const
+	geo_point				&get_geopoint			()
 	{
 		return pos;
 	}

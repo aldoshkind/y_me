@@ -10,6 +10,7 @@
 #include "additional_math.h"
 #include "render_node.h"
 #include "geo_node.h"
+#include "route.h"
 
 Q_DECLARE_METATYPE(geo_point)
 
@@ -23,7 +24,6 @@ class map_view : public QSFMLCanvas
 	sf::Texture			t;
 
 	geo_node			gn;
-	//sf::Sprite			s;
 	sprite_node			s;
 	sf::Texture			t_child;
 	sprite_node			s_child;
@@ -40,6 +40,8 @@ class map_view : public QSFMLCanvas
 	projector_spheric	proj;
 
 	sf::VertexArray		view_rect;
+
+	route				rt;
 
 	geo_point			to_geo				(const sf::Vector2f &view_coord) const;
 	sf::Vector2f		to_view				(const geo_point &gp) const;
@@ -59,6 +61,11 @@ public:
 	void				OnUpdate			();
 
 	int					calculate_zoom		();
+
+	route				&get_route			()
+	{
+		return rt;
+	}
 
 signals:
 	void				signal_mouse_move	(geo_point gp);
