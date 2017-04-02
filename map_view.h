@@ -23,10 +23,10 @@ class map_view : public QSFMLCanvas
 	sf::Texture			texture;
 	sf::Texture			t;
 
-	geo_node			gn;
+	/*geo_node			gn;
 	sprite_node			s;
 	sf::Texture			t_child;
-	sprite_node			s_child;
+	sprite_node			s_child;*/
 
 	tiler_google		tg;
 

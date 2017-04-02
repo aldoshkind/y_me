@@ -8,6 +8,9 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
+#include <QFileDialog>
+#include <QMessageBox>
 
 #include <jsoncpp/json/json.h>
 
@@ -20,6 +23,8 @@ class main_widget : public QWidget
 	Q_OBJECT
 
 	QHBoxLayout			*layout_main;
+	QVBoxLayout			*layout_structure;
+	QHBoxLayout			*layout_buttons;
 	QVBoxLayout			*layout_map;
 	QHBoxLayout			*layout_info;
 	QLabel				*label_coords;
@@ -28,13 +33,16 @@ class main_widget : public QWidget
 	map_view			*sfml;
 	Widget				*tree_widget;
 
+	QPushButton			*button_open;
+	QPushButton			*button_save;
+
 	node				root;
 
-	void				load				()
+	void				load				(QString fn)
 	{
 		Json::Value mission;
 
-		std::ifstream mission_file("/home/dmitry/yuneec.rps", std::ifstream::binary);
+		std::ifstream mission_file(fn.toStdString(), std::ifstream::binary);
 		setlocale(LC_ALL, "C");
 		mission_file >> mission;
 
@@ -96,7 +104,67 @@ class main_widget : public QWidget
 				n->add_property(prop);
 			}
 		}
+	}
 
+	void save_node(Json::Value &val, node &n)
+	{
+		for(auto prop : n.get_properties())
+		{
+			std::cout << prop->get_type() << " " << prop->get_name() << std::endl;
+			if(prop->get_type() == typeid(double).name())
+			{
+				property_value<double> *pd = dynamic_cast<property_value<double> *>(prop);
+				val[prop->get_name()] = pd->get_value();
+			}
+			if(prop->get_type() == typeid(int).name())
+			{
+				property_value<int> *pd = dynamic_cast<property_value<int> *>(prop);
+				val[prop->get_name()] = pd->get_value();
+			}
+			if(prop->get_type() == typeid(std::string).name())
+			{
+				property_value<std::string> *pd = dynamic_cast<property_value<std::string> *>(prop);
+				val[prop->get_name()] = pd->get_value();
+			}
+		}
+	}
+
+	int save(QString path)
+	{
+		if(root.at("route") == NULL || root.at("route")->at("waypoints") == NULL)
+		{
+			return -1;
+		}
+
+		Json::Value rt;
+		Json::Value route;
+
+		save_node(route, *root.at("route"));
+
+		Json::Value waypoints;
+		node *n_wp = root.at("route")->at("waypoints");
+		waypoints.resize(n_wp->ls().size());
+		for(auto wp : n_wp->ls())
+		{
+			std::cout << wp << std::endl;
+			std::stringstream ss(wp);
+			int n = 0;
+			ss >> n;
+			std::cout << n << std::endl;
+			Json::Value jwp;
+			save_node(jwp, *n_wp->at(wp));
+			waypoints[n] = jwp;
+		}
+
+		rt["route"] = route;
+		rt["waypoints"] = waypoints;
+		rt["interestPoints"].resize(0);
+
+		std::ofstream file("/home/dmitry/out.rps");
+		file << rt;
+		file.close();
+
+		return 0;
 	}
 
 public:
@@ -104,7 +172,7 @@ public:
 	{
 		layout_main = new QHBoxLayout(this);
 
-		layout_map = new QVBoxLayout(this);
+		layout_map = new QVBoxLayout;
 
 		layout_info = new QHBoxLayout;
 		sfml = new map_view(this);
@@ -115,6 +183,12 @@ public:
 
 		tree_widget = new Widget(this);
 		tree_widget->set_tree(&root);
+		button_open = new QPushButton("Open", this);
+		button_save = new QPushButton("Save", this);
+		layout_structure = new QVBoxLayout;
+		layout_buttons = new QHBoxLayout;
+		layout_buttons->addWidget(button_open);
+		layout_buttons->addWidget(button_save);
 
 		layout_info->addWidget(label_coords);
 		layout_info->addWidget(label_zoom);
@@ -122,13 +196,17 @@ public:
 		layout_map->addWidget(sfml, 1);
 		layout_map->addLayout(layout_info, 0);
 
-		layout_main->addWidget(tree_widget, 1);
-		layout_main->addLayout(layout_map, 3);
+		layout_structure->addWidget(tree_widget);
+		layout_structure->addLayout(layout_buttons);
+
+		layout_main->addLayout(layout_structure, 1);
+		layout_main->addLayout(layout_map, 2);
 
 		connect(sfml, SIGNAL(signal_mouse_move(geo_point)), this, SLOT(slot_mouse_coords(geo_point)));
 		connect(sfml, SIGNAL(signal_zoom_level(int)), this, SLOT(slot_zoom(int)));
 
-		load();
+		connect(button_open, SIGNAL(pressed()), this, SLOT(slot_load()));
+		connect(button_save, SIGNAL(pressed()), this, SLOT(slot_save()));
 	}
 
 	/*destructor*/		~main_widget			()
@@ -145,5 +223,22 @@ private slots:
 	void				slot_zoom			(int zoom)
 	{
 		label_zoom->setText(QString("Z: %1").arg(zoom));
+	}
+
+	void				slot_load			()
+	{
+		QString fn = QFileDialog::getOpenFileName(this, tr("Open rps"), "~/", tr("*.rps"));
+		if(fn.size() != 0)
+		{
+			load(fn);
+		}
+	}
+	void				slot_save			()
+	{
+		QString fn = QFileDialog::getSaveFileName(this, tr("Save rps"), "~/", tr("*.rps"));
+		if(fn.size() != 0)
+		{
+			save(fn);
+		}
 	}
 };

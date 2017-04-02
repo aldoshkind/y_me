@@ -1,12 +1,14 @@
 #include "map_view.h"
 
-/*constructor*/ map_view::map_view(QWidget *parent) : QSFMLCanvas(parent), gn(&s)
+/*constructor*/ map_view::map_view(QWidget *parent) : QSFMLCanvas(parent)//, gn(&s)
 {
 	move = false;
 	setMouseTracking(true);
 	tc.set_tiler(&tg);
 	proj.set_scale(100.0);
-	s.set_scale_dependent(true);
+//	s.set_scale_dependent(true);
+
+	rt.set_projector(&proj);
 
 	static bool registered = false;
 	if(registered == false)
@@ -25,6 +27,8 @@ void map_view::update_view()
 {
 	calculate_zoom();
 
+	setView(view);
+
 	sf::Vector2f tl = mapPixelToCoords(sf::Vector2i(0, 0), view);
 	sf::Vector2f bl = mapPixelToCoords(sf::Vector2i(0, height()), view);
 	sf::Vector2f br = mapPixelToCoords(sf::Vector2i(width(), height()), view);
@@ -39,6 +43,8 @@ void map_view::update_view()
 	geo_point south_east = to_geo(sf::Vector2f(right, bottom));
 
 	tiles = tg.get_tiles_for(north_west.lon(), south_east.lon(), north_west.lat(), south_east.lat(), zoom);
+
+	rt.update_nodes(*this, &proj);
 }
 
 void map_view::mousePressEvent(QMouseEvent *event)
@@ -55,8 +61,9 @@ void map_view::mousePressEvent(QMouseEvent *event)
 	if(event->button() == Qt::LeftButton)
 	{
 		//s.setPosition(viewpos.x/* - s.getGlobalBounds().width / 2.0*/, viewpos.y/* - s.getGlobalBounds().height / 2.0*/);
-		gn.set_geopoint(to_geo(viewpos));
+	//	gn.set_geopoint(to_geo(viewpos));
 	}
+	rt.mouse_press(viewpos);
 }
 
 void map_view::wheelEvent(QWheelEvent *event)
@@ -98,6 +105,8 @@ void map_view::wheelEvent(QWheelEvent *event)
 	{
 		emit signal_zoom_level(zoom);
 	}
+
+	rt.mouse(old_pos);
 }
 
 void map_view::resizeEvent(QResizeEvent *)
@@ -140,6 +149,7 @@ void map_view::mouseReleaseEvent(QMouseEvent *event)
 	sf::Vector2f viewpos = mapPixelToCoords(pos, view);
 	emit signal_mouse_release(to_geo(viewpos));
 	move = false;
+	rt.mouse_release(viewpos);
 }
 
 void map_view::OnInit()
@@ -154,16 +164,16 @@ void map_view::OnInit()
 	sf::Vector2i pos;
 
 	t.loadFromFile("/home/dmitry/yandex_disk/programming/sfml_test/settings2.png");
-	s.setTexture(t, true);
+//	s.setTexture(t, true);
 	calculate_zoom();
-	s.setOrigin(64,64);
+//	s.setOrigin(64,64);
 //	s.set_scale_dependent(true);
 
-	t_child.loadFromFile("/home/dmitry/yandex_disk/programming/sfml_test/settings.png");
-	s_child.setTexture(t_child, true);
+//	t_child.loadFromFile("/home/dmitry/yandex_disk/programming/sfml_test/settings.png");
+//	s_child.setTexture(t_child, true);
 	//s_child.setOrigin(64,64);
 
-	s.add_child(&s_child);
+//	s.add_child(&s_child);
 
 	view.setCenter(0, 50);
 
@@ -172,7 +182,6 @@ void map_view::OnInit()
 
 void map_view::OnUpdate()
 {
-	setView(view);
 	clear();
 
 	for(decltype(tiles.size()) i = 0 ; i < tiles.size() ; i += 1)
@@ -201,12 +210,12 @@ void map_view::OnUpdate()
 		draw(va, rs);
 	}
 
-	s_child.rotate(0.1);
+	/*s_child.rotate(0.1);
 
 	gn.map(proj);
-	s.render(*this);
+	s.render(*this);*/
 
-	rt.draw(*this, &proj);
+	rt.draw(*this);
 
 	display();
 }
