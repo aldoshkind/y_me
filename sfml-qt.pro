@@ -31,7 +31,8 @@ SOURCES += main.cpp \
     map_view.cpp \
     tree/filepath_utils.cpp \
     tree/resource.cpp \
-    tree/widget.cpp
+    tree/widget.cpp \
+    route.cpp
 
 HEADERS  += \
     QSFMLCanvas.h \
@@ -55,6 +56,10 @@ HEADERS  += \
     tree/resource.h \
     tree/sinus_generator.h \
     tree/tree_node.h \
-    tree/widget.h
+    tree/widget.h \
+    yuneec/interest_point.h \
+    yuneec/route.h \
+    yuneec/waypoint.h \
+    json_serializable.h
 
 LIBS += -lsfml-window -lsfml-graphics -lcurl -lsfml-system -ljsoncpp

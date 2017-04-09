@@ -17,6 +17,7 @@
 #include "map_view.h"
 #include "tree/widget.h"
 #include "tree/node.h"
+#include "yuneec/route.h"
 
 class main_widget : public QWidget
 {
@@ -37,139 +38,32 @@ class main_widget : public QWidget
 	QPushButton			*button_save;
 
 	node				root;
+	yuneec::route		*route;
 
 	void				load				(QString fn)
 	{
-		Json::Value mission;
-
-		std::ifstream mission_file(fn.toStdString(), std::ifstream::binary);
-		setlocale(LC_ALL, "C");
-		mission_file >> mission;
-
-		std::cout << mission;
-
-		Json::Value &json_route = mission["route"];
-		Json::Value &json_waypoints = mission["waypoints"];
-		if(json_route.isNull() == true || json_waypoints.isNull() == true)
+		if(route != nullptr)
 		{
-			return;
+			root.remove("route", true);
 		}
-		node *n_route = root.append("route");
-		for(auto prop_name : json_route.getMemberNames())
-		{
-			auto prop = new property_value<std::string>(prop_name);
-			n_route->add_property(prop);
-			*prop = json_route[prop_name].asString();
-		}
-
-		node *n_waypoints = n_route->append("waypoints");
-		for(Json::ArrayIndex i = 0 ; i < json_waypoints.size() ; i += 1)
-		{
-			std::stringstream ss;
-			ss << i;
-			node *n = n_waypoints->append(ss.str());
-			Json::Value &j_waypoint = json_waypoints[i];
-			for(auto prop_name : j_waypoint.getMemberNames())
-			{
-				const Json::Value &wp_prop = j_waypoint[prop_name];
-				property_base *prop = NULL;
-
-				switch(wp_prop.type())
-				{
-				case Json::intValue:
-					{
-						property_value<int> *p = new property_value<int>(prop_name);
-						*p = wp_prop.asInt();
-						prop = p;
-					}
-				break;
-				case Json::realValue:
-					{
-						property_value<double> *p = new property_value<double>(prop_name);
-						*p = wp_prop.asDouble();
-						prop = p;
-					}
-				break;
-				case Json::stringValue:
-					{
-						property_value<std::string> *p = new property_value<std::string>(prop_name);
-						*p = wp_prop.asString();
-						prop = p;
-					}
-				break;
-				default:
-					continue;
-				break;
-				};
-				n->add_property(prop);
-			}
-		}
-	}
-
-	void save_node(Json::Value &val, node &n)
-	{
-		for(auto prop : n.get_properties())
-		{
-			std::cout << prop->get_type() << " " << prop->get_name() << std::endl;
-			if(prop->get_type() == typeid(double).name())
-			{
-				property_value<double> *pd = dynamic_cast<property_value<double> *>(prop);
-				val[prop->get_name()] = pd->get_value();
-			}
-			if(prop->get_type() == typeid(int).name())
-			{
-				property_value<int> *pd = dynamic_cast<property_value<int> *>(prop);
-				val[prop->get_name()] = pd->get_value();
-			}
-			if(prop->get_type() == typeid(std::string).name())
-			{
-				property_value<std::string> *pd = dynamic_cast<property_value<std::string> *>(prop);
-				val[prop->get_name()] = pd->get_value();
-			}
-		}
+		route = new yuneec::route;
+		root.attach("route", route);
+		route->load(fn.toStdString());
 	}
 
 	int save(QString path)
 	{
-		if(root.at("route") == NULL || root.at("route")->at("waypoints") == NULL)
+		if(route == nullptr)
 		{
 			return -1;
 		}
-
-		Json::Value rt;
-		Json::Value route;
-
-		save_node(route, *root.at("route"));
-
-		Json::Value waypoints;
-		node *n_wp = root.at("route")->at("waypoints");
-		waypoints.resize(n_wp->ls().size());
-		for(auto wp : n_wp->ls())
-		{
-			std::cout << wp << std::endl;
-			std::stringstream ss(wp);
-			int n = 0;
-			ss >> n;
-			std::cout << n << std::endl;
-			Json::Value jwp;
-			save_node(jwp, *n_wp->at(wp));
-			waypoints[n] = jwp;
-		}
-
-		rt["route"] = route;
-		rt["waypoints"] = waypoints;
-		rt["interestPoints"].resize(0);
-
-		std::ofstream file("/home/dmitry/out.rps");
-		file << rt;
-		file.close();
-
-		return 0;
+		return route->save(path.toStdString()) == true ? 0 : -1;
 	}
 
 public:
 	/*constructor*/		main_widget			() : QWidget(NULL)
 	{
+		route = nullptr;
 		layout_main = new QHBoxLayout(this);
 
 		layout_map = new QVBoxLayout;
@@ -227,7 +121,7 @@ private slots:
 
 	void				slot_load			()
 	{
-		QString fn = QFileDialog::getOpenFileName(this, tr("Open rps"), "~/", tr("*.rps"));
+		QString fn = QFileDialog::getOpenFileName(this, tr("Open rps"), "/home/dmitry", tr("*.rps"));
 		if(fn.size() != 0)
 		{
 			load(fn);
@@ -235,7 +129,7 @@ private slots:
 	}
 	void				slot_save			()
 	{
-		QString fn = QFileDialog::getSaveFileName(this, tr("Save rps"), "~/", tr("*.rps"));
+		QString fn = QFileDialog::getSaveFileName(this, tr("Save rps"), "/home/dmitry", tr("*.rps"));
 		if(fn.size() != 0)
 		{
 			save(fn);
