@@ -9,6 +9,7 @@
 //	s.set_scale_dependent(true);
 
 	rt.set_projector(&proj);
+	ar.set_projector(&proj);
 
 	static bool registered = false;
 	if(registered == false)
@@ -45,6 +46,7 @@ void map_view::update_view()
 	tiles = tg.get_tiles_for(north_west.lon(), south_east.lon(), north_west.lat(), south_east.lat(), zoom);
 
 	rt.update_nodes(*this, &proj);
+	ar.update_nodes(*this, &proj);
 }
 
 void map_view::mousePressEvent(QMouseEvent *event)
@@ -64,6 +66,7 @@ void map_view::mousePressEvent(QMouseEvent *event)
 	//	gn.set_geopoint(to_geo(viewpos));
 	}
 	rt.mouse_press(viewpos);
+	ar.mouse_press(viewpos);
 }
 
 void map_view::wheelEvent(QWheelEvent *event)
@@ -107,6 +110,7 @@ void map_view::wheelEvent(QWheelEvent *event)
 	}
 
 	rt.mouse(old_pos);
+	ar.mouse(old_pos);
 }
 
 void map_view::resizeEvent(QResizeEvent *)
@@ -139,6 +143,7 @@ void map_view::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	rt.mouse(viewpos);
+	ar.mouse(viewpos);
 
 	emit signal_mouse_move(to_geo(viewpos));
 }
@@ -150,6 +155,7 @@ void map_view::mouseReleaseEvent(QMouseEvent *event)
 	emit signal_mouse_release(to_geo(viewpos));
 	move = false;
 	rt.mouse_release(viewpos);
+	ar.mouse_release(viewpos);
 }
 
 void map_view::OnInit()
@@ -216,6 +222,7 @@ void map_view::OnUpdate()
 	s.render(*this);*/
 
 	rt.draw(*this);
+	ar.draw(*this);
 
 	display();
 }

@@ -32,7 +32,8 @@ SOURCES += main.cpp \
     tree/filepath_utils.cpp \
     tree/resource.cpp \
     tree/widget.cpp \
-    route.cpp
+    route.cpp \
+    afarea_render.cpp
 
 HEADERS  += \
     QSFMLCanvas.h \
@@ -60,6 +61,8 @@ HEADERS  += \
     yuneec/interest_point.h \
     yuneec/route.h \
     yuneec/waypoint.h \
-    json_serializable.h
+    json_serializable.h \
+    afarea.h \
+    afarea_render.h
 
 LIBS += -lsfml-window -lsfml-graphics -lcurl -lsfml-system -ljsoncpp

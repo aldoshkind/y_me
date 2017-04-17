@@ -19,6 +19,8 @@
 #include "tree/node.h"
 #include "yuneec/route.h"
 
+#include "afarea.h"
+
 class main_widget : public QWidget
 {
 	Q_OBJECT
@@ -38,32 +40,23 @@ class main_widget : public QWidget
 	QPushButton			*button_save;
 
 	node				root;
-	yuneec::route		*route;
+	yuneec::route		route;
+
+	afarea				area;
 
 	void				load				(QString fn)
 	{
-		if(route != nullptr)
-		{
-			root.remove("route", true);
-		}
-		route = new yuneec::route;
-		root.attach("route", route);
-		route->load(fn.toStdString());
+		route.load(fn.toStdString());
 	}
 
 	int save(QString path)
 	{
-		if(route == nullptr)
-		{
-			return -1;
-		}
-		return route->save(path.toStdString()) == true ? 0 : -1;
+		return route.save(path.toStdString()) == true ? 0 : -1;
 	}
 
 public:
 	/*constructor*/		main_widget			() : QWidget(NULL)
 	{
-		route = nullptr;
 		layout_main = new QHBoxLayout(this);
 
 		layout_map = new QVBoxLayout;
@@ -71,6 +64,7 @@ public:
 		layout_info = new QHBoxLayout;
 		sfml = new map_view(this);
 		sfml->get_route().set_tree(&root);
+		sfml->get_afarea_render().set_tree(&root);
 
 		label_coords = new QLabel(this);
 		label_zoom = new QLabel(this);
@@ -101,6 +95,18 @@ public:
 
 		connect(button_open, SIGNAL(pressed()), this, SLOT(slot_load()));
 		connect(button_save, SIGNAL(pressed()), this, SLOT(slot_save()));
+
+		root.attach("route", &route, false);
+
+		route.attach("afarea", &area, false);
+
+		node *wps = route.append("waypoints");
+
+		wps->insert("test", new yuneec::waypoint);
+		wps->insert("test0", new yuneec::waypoint);
+		wps->insert("test1", new yuneec::waypoint, "test");
+
+		connect(sfml, SIGNAL(signal_mouse_press(geo_point)), &area, SLOT(slot_mouse_press(geo_point)));
 	}
 
 	/*destructor*/		~main_widget			()

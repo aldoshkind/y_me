@@ -136,6 +136,12 @@ public:
 
 	bool						deserialize			(const Json::Value &mission)
 	{
+		ls_list_t items = ls();
+		for(auto item : items)
+		{
+			remove(item, true);
+		}
+
 		const Json::Value &jroute = mission["route"];
 		const Json::Value &jwaypoints = mission["waypoints"];
 		const Json::Value &jinterest_points = mission["interestPoints"];

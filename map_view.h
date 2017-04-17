@@ -11,6 +11,7 @@
 #include "render_node.h"
 #include "geo_node.h"
 #include "route.h"
+#include "afarea_render.h"
 
 Q_DECLARE_METATYPE(geo_point)
 
@@ -42,6 +43,7 @@ class map_view : public QSFMLCanvas
 	sf::VertexArray		view_rect;
 
 	route				rt;
+	afarea_render		ar;
 
 	geo_point			to_geo				(const sf::Vector2f &view_coord) const;
 	sf::Vector2f		to_view				(const geo_point &gp) const;
@@ -65,6 +67,11 @@ public:
 	route				&get_route			()
 	{
 		return rt;
+	}
+
+	afarea_render		&get_afarea_render	()
+	{
+		return ar;
 	}
 
 signals:
