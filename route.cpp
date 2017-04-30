@@ -260,7 +260,7 @@ void					route::draw			(sf::RenderTarget &t)
 		tx.setScale(sc, sc);
 		tx.setPosition(sp->getPosition());
 		tx.setRotation(t.getView().getRotation());
-		t.draw(tx);
+		//t.draw(tx);
 	}
 	if(sel_sp != NULL)
 	{

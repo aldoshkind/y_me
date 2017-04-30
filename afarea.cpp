@@ -1,5 +1,7 @@
 #include "afarea.h"
 
+#include "lib2dgeom/line2.h"
+
 /*constructor*/ afarea::afarea() : height("height", this, &afarea::get_height, &afarea::set_height)
 {
 	this->route = NULL;
@@ -131,15 +133,74 @@ void afarea::update_route()
 	}
 
 	contour c = get_contour();
-	//rect r = get_bbox(c);
-
-
-
-
-
-
+	rect r = get_bbox(c);
 
 	yuneec::waypoint_container *wpc = dynamic_cast<yuneec::waypoint_container *>(node_wpc);
+
+	double step = 0.01;
+	std::map<double, std::pair<vector2d, vector2d> > profiles;
+
+	bool upside = true;
+	for(double x = r.left + step / 2.0 ; x < r.left + r.width ; x += step)
+	{
+		line2 l(x, 0);
+		for(contour::size_type i = 0 ; i < c.size() ; i += 1)
+		{
+			vector2d a = vector2d(c[i].x, c[i].y);
+			vector2d b = vector2d(c[(i + 1) % c.size()].x, c[(i + 1) % c.size()].y);
+			line2 l0(a, b);
+			vector2d inter = l.intersection(l0);
+			if(within(inter.x, a.x, b.x) == false)
+			{
+				continue;
+			}
+			if(profiles.find(x) == profiles.end())
+			{
+				profiles[x].first = profiles[x].second = inter;
+			}
+			else
+			{
+				if(profiles[x].first.y < inter.y)
+				{
+					profiles[x].first = inter;
+				}
+				if(profiles[x].second.y > inter.y)
+				{
+					profiles[x].second = inter;
+				}
+			}
+		}
+
+		if(profiles.find(x) == profiles.end())
+		{
+			continue;
+		}
+
+		std::stringstream ss;
+		ss << x;
+
+		if(upside == true)
+		{
+			yuneec::waypoint *wp_a = wpc->generate("a" + ss.str());
+			wp_a->latitude = DEG(proj.y_to_lat(profiles[x].first.y));
+			wp_a->longitude = DEG(proj.x_to_lon(profiles[x].first.x));
+		}
+
+		yuneec::waypoint *wp_b = wpc->generate("b" + ss.str());
+		wp_b->latitude = DEG(proj.y_to_lat(profiles[x].second.y));
+		wp_b->longitude = DEG(proj.x_to_lon(profiles[x].second.x));
+
+		if(upside == false)
+		{
+			yuneec::waypoint *wp_a = wpc->generate("a" + ss.str());
+			wp_a->latitude = DEG(proj.y_to_lat(profiles[x].first.y));
+			wp_a->longitude = DEG(proj.x_to_lon(profiles[x].first.x));
+		}
+
+		upside = !upside;
+	}
+
+
 
 	/*yuneec::waypoint *wp_a = wpc->generate("a");
 	wp_a->latitude = DEG(proj.y_to_lat(r.top));

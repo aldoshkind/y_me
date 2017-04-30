@@ -33,6 +33,7 @@ void				afarea_render::child_added				(node *n)
 	node_nums[n->get_name()] = nodes.size();
 
 	sf::CircleShape *cs = new sf::CircleShape(30, 28);
+	cs->setFillColor(sf::Color::Green);
 	nodes_to_markers[n] = markers.size();
 	markers.push_back(cs);
 
@@ -237,6 +238,10 @@ void					afarea_render::draw			(sf::RenderTarget &t)
 		if(sp == sel_sp)
 		{
 			v.color = sf::Color::Red;
+		}
+		else
+		{
+			v.color = sf::Color::Green;
 		}
 		va.append(v);
 	}

@@ -36,7 +36,8 @@ SOURCES += main.cpp \
     route.cpp \
     afarea_render.cpp \
     yuneec/yuneec_route.cpp \
-    afarea.cpp
+    afarea.cpp \
+    lib2dgeom/line2.cpp
 
 HEADERS  += \
     QSFMLCanvas.h \
@@ -66,6 +67,7 @@ HEADERS  += \
     afarea_render.h \
     yuneec/yuneec_route.h \
     yuneec/yuneec_waypoint.h \
-    yuneec/yuneec_interest_point.h
+    yuneec/yuneec_interest_point.h \
+    lib2dgeom/line2.h
 
 LIBS += -lsfml-window -lsfml-graphics -lcurl -lsfml-system -ljsoncpp

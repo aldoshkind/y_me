@@ -87,6 +87,7 @@ public:
 
 		wp_container = new waypoint_container;
 		attach("waypoints", wp_container);
+		append("interestPoints");
 	}
 
 	/*destructor*/				~route				()
@@ -132,10 +133,10 @@ public:
 
 	bool						deserialize			(const Json::Value &mission)
 	{
-		ls_list_t items = ls();
+		ls_list_t items = wp_container->ls();
 		for(auto item : items)
 		{
-			remove(item, true);
+			wp_container->remove(item, true);
 		}
 
 		const Json::Value &jroute = mission["route"];
@@ -189,7 +190,7 @@ public:
 			printf("deser %f %f\n", wp->latitude.get_value(), wp->longitude.get_value());
 		}
 
-		node *n_interest_points = append("interestPoints");
+		node *n_interest_points = at("interestPoints");
 		for(Json::ArrayIndex i = 0 ; i < jinterest_points.size() ; i += 1)
 		{
 			name_render.str(std::string());
