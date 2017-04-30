@@ -1,3 +1,6 @@
 [submodule "tree"]
 	path = tree
 	url = https://github.com/aldoshkind/tree.git
+[submodule "lib2dgeom"]
+	path = lib2dgeom
+	url = https://github.com/aldoshkind/lib2dgeom.git
