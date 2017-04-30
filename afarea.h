@@ -4,75 +4,47 @@
 
 #include <QObject>
 
+#include <SFML/Graphics.hpp>
+
 #include "additional_math.h"
 
 #include "tree/node.h"
 #include "geo_point.h"
+#include "projector_spheric.h"
+#include "yuneec/yuneec_route.h"
+#include "yuneec/yuneec_waypoint.h"
 
 class afarea : public QObject, public node
 {
 	Q_OBJECT
 
-	double val_height;
+	double				val_height;
+	projector_spheric	proj;
 
-	void						set_height			(double h)
-	{
-		val_height = h;
-	}
+	void						set_height			(double h);
+	double						get_height			() const;
 
-	double						get_height			() const
-	{
-		return val_height;
-	}
+	typedef sf::Rect<double>			rect;
+	typedef std::vector<sf::Vector2f>	contour;
+
+	rect						get_bbox			(const contour &c) const;
+	contour						get_contour			() const;
+	void						update_route		();
+
+	node						*route;
 
 public:
 	property_get_set<afarea, double>	height;
 
 public:
-	/*constructor*/				afarea				() : height("height", this, &afarea::get_height, &afarea::set_height)
-	{
-		//
-	}
+	/*constructor*/				afarea				();
+	/*destructor*/				~afarea				();
 
-	/*destructor*/				~afarea				()
-	{
-		//
-	}
-
-	void						add_vertex			(geo_point pos)
-	{
-		static int idx = 0;
-		std::stringstream ss;
-		ss << idx;
-		idx += 1;
-
-		if(idx > 3)
-		{
-			return;
-		}
-
-		printf("created\n");
-
-		node *n = append("vx" + ss.str());
-		n->add_property(new property_value<double>("latitude"));
-		n->add_property(new property_value<double>("longitude"));
-		*dynamic_cast<::property<double> *>(n->get_property("latitude")) = DEG(pos.lat());
-		*dynamic_cast<::property<double> *>(n->get_property("longitude")) = DEG(pos.lon());
-	}
+	void						set_route			(node *route);
+	void						add_vertex			(geo_point pos);
 
 public slots:
-	void					slot_mouse_move			(geo_point/* gp*/)
-	{
-		//
-	}
-
-	void					slot_mouse_press		(geo_point gp)
-	{
-		add_vertex(gp);
-	}
-
-	void					slot_mouse_release		(geo_point)
-	{
-		//
-	}
+	void					slot_mouse_move			(geo_point/* gp*/);
+	void					slot_mouse_press		(geo_point gp);
+	void					slot_mouse_release		(geo_point);
 };

@@ -5,14 +5,37 @@
 #include "tree/node.h"
 #include "json_serializable.h"
 
-#include "waypoint.h"
-#include "interest_point.h"
+#include "yuneec_waypoint.h"
+#include "yuneec_interest_point.h"
 
 namespace yuneec
 {
 
+class waypoint_container : public node
+{
+public:
+	/*constructor*/			waypoint_container			()
+	{
+		//
+	}
+
+	/*destructor*/			~waypoint_container			()
+	{
+		//
+	}
+
+	waypoint				*generate					(std::string name)
+	{
+		waypoint *wp = new waypoint;
+		attach(name, wp);
+		return wp;
+	}
+};
+
 class route : public node, public json_serializable
 {
+	waypoint_container			*wp_container;
+
 	void save_node(Json::Value &val) const
 	{
 		for(auto prop : get_properties())
@@ -61,6 +84,9 @@ public:
 		add_property(&route_type);
 		add_property(&speed);
 		add_property(&tilt_mode);
+
+		wp_container = new waypoint_container;
+		attach("waypoints", wp_container);
 	}
 
 	/*destructor*/				~route				()
@@ -68,38 +94,8 @@ public:
 		//
 	}
 
-	bool						load				(std::string path)
-	{
-		Json::Value mission;
-
-		std::ifstream mission_file(path, std::ifstream::binary);
-		if(mission_file.is_open() == false)
-		{
-			return false;
-		}
-		setlocale(LC_ALL, "C");
-		mission_file >> mission;
-
-		//std::cout << mission;
-
-		return deserialize(mission);
-	}
-
-	bool						save				(std::string path)
-	{
-		Json::Value mission;
-		serialize(mission);
-
-		std::ofstream mission_file(path, std::ofstream::binary);
-		if(mission_file.is_open() == false)
-		{
-			return false;
-		}
-		mission_file << mission;
-		mission_file.close();
-
-		return true;
-	}
+	bool						load				(std::string path);
+	bool						save				(std::string path);
 
 	bool						serialize			(Json::Value &v) const
 	{
@@ -184,15 +180,13 @@ public:
 
 		std::stringstream name_render;
 
-		node *n_waypoints = append("waypoints");
 		for(Json::ArrayIndex i = 0 ; i < jwaypoints.size() ; i += 1)
 		{
 			name_render.str(std::string());
 			name_render << "waypoint " << i;
-			waypoint *wp = new waypoint;
+			waypoint *wp = wp_container->generate(name_render.str());
 			wp->deserialize(jwaypoints[i]);
 			printf("deser %f %f\n", wp->latitude.get_value(), wp->longitude.get_value());
-			n_waypoints->attach(name_render.str(), wp);
 		}
 
 		node *n_interest_points = append("interestPoints");

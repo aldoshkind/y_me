@@ -34,6 +34,7 @@ void				route::child_added				(node *n)
 	node_nums[n->get_name()] = nodes.size();
 
 	sf::CircleShape *cs = new sf::CircleShape(30, 28);
+	nodes_to_markers[n] = markers.size();
 	markers.push_back(cs);
 
 	marker_nums[cs] = nodes.size();
@@ -106,10 +107,12 @@ void				route::new_property			(resource *r, property_base *p)
 	if(pd->get_name() == "latitude")
 	{
 		nodes[node_nums[n->get_name()]].get_geopoint().set_lat(RAD(pd->get_value()));
+		pd->add_listener(this);
 	}
 	else if(pd->get_name() == "longitude")
 	{
 		nodes[node_nums[n->get_name()]].get_geopoint().set_lon(RAD(pd->get_value()));
+		pd->add_listener(this);
 	}
 }
 
@@ -262,5 +265,38 @@ void					route::draw			(sf::RenderTarget &t)
 	if(sel_sp != NULL)
 	{
 		t.draw(sel);
+	}
+}
+
+void route::updated(property_base *prop)
+{
+	node *n = dynamic_cast<node *>(prop->get_resource());
+
+	if(n == NULL)
+	{
+		return;
+	}
+
+	if(nodes_to_markers.find(n) == nodes_to_markers.end())
+	{
+		return;
+	}
+
+	property<double> *pd = dynamic_cast<property<double> *>(prop);
+
+	if(pd == NULL)
+	{
+		return;
+	}
+
+	size_t i = nodes_to_markers[n];
+
+	if(prop->get_name() == "latitude")
+	{
+		nodes[i].get_geopoint().set_lat(RAD(pd->get_value()));
+	}
+	if(prop->get_name() == "longitude")
+	{
+		nodes[i].get_geopoint().set_lon(RAD(pd->get_value()));
 	}
 }

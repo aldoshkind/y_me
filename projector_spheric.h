@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #include "projector.h"
 
 class projector_spheric : public projector

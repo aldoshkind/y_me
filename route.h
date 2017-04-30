@@ -1,5 +1,4 @@
-#ifndef ROUTE_H
-#define ROUTE_H
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -12,7 +11,7 @@
 
 #include "geo_node.h"
 
-class route : public node::listener_t, public resource::new_property_listener
+class route : public node::listener_t, public resource::new_property_listener, public property_listener
 {
 	typedef sf::CircleShape marker_t;
 
@@ -20,6 +19,7 @@ class route : public node::listener_t, public resource::new_property_listener
 	std::vector<geo_node>				nodes;
 	std::vector<marker_t *>				markers;
 	std::map<marker_t *, size_t>		marker_nums;
+	std::map<node *, size_t>			nodes_to_markers;
 	std::map<size_t, node *>			node_ptrs;
 	sf::Texture							t;
 	sf::Font							f;
@@ -34,6 +34,8 @@ class route : public node::listener_t, public resource::new_property_listener
 	void					new_property			(resource *r, property_base *p);
 
 	projector				*proj;
+
+	void					updated					(property_base *prop);
 
 public:
 	/*constructor*/			route			();
@@ -54,5 +56,3 @@ public:
 	void					mouse_press		(sf::Vector2f pt);
 	void					mouse_release	(sf::Vector2f /*pt*/);
 };
-
-#endif // ROUTE_H

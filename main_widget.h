@@ -17,7 +17,7 @@
 #include "map_view.h"
 #include "tree/widget.h"
 #include "tree/node.h"
-#include "yuneec/route.h"
+#include "yuneec/yuneec_route.h"
 
 #include "afarea.h"
 
@@ -99,8 +99,9 @@ public:
 		root.attach("route", &route, false);
 
 		route.attach("afarea", &area, false);
+		area.set_route(&route);
 
-		node *wps = route.append("waypoints");
+		node *wps = route.at("waypoints");
 
 		wps->insert("test", new yuneec::waypoint);
 		wps->insert("test0", new yuneec::waypoint);
