@@ -17,11 +17,6 @@ void afarea::set_route(node *route)
 	this->route = route;
 }
 
-/*rect						get_bbox			(const contour &c) const
-{
-	//
-}*/
-
 void afarea::add_vertex(geo_point pos)
 {
 	static int idx = 0;

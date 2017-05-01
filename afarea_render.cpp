@@ -28,7 +28,7 @@ void				afarea_render::child_added				(node *n)
 	{
 		return;
 	}
-	printf("new child %s\n", n->get_name().c_str());
+	//printf("new child %s\n", n->get_name().c_str());
 
 	node_nums[n->get_name()] = nodes.size();
 
@@ -50,7 +50,7 @@ void				afarea_render::child_added				(node *n)
 
 void				afarea_render::child_removed			(node *n, std::string name)
 {
-	std::cout << "removed" << n->get_path() << " " << name << std::endl;
+	//std::cout << "removed" << n->get_path() << " " << name << std::endl;
 
 	const std::string &path = n->get_path();
 	if(path != "/route/afarea")
@@ -90,7 +90,7 @@ void				afarea_render::new_property			(resource *r, property_base *p)
 		return;
 	}
 
-	printf("new prop %s of %s\n", p->get_name().c_str(), n->get_name().c_str());
+	//printf("new prop %s of %s\n", p->get_name().c_str(), n->get_name().c_str());
 
 	if(node_nums.find(n->get_name()) == node_nums.end())
 	{
@@ -114,7 +114,7 @@ void					afarea_render::mouse_press		(sf::Vector2f pt)
 	marker_t *new_found = find(pt);
 	if(new_found != NULL)
 	{
-		printf("\n\n\nfound\n\n\n");
+		//printf("\n\n\nfound\n\n\n");
 		sel_sp = new_found;
 		prev_pos = pt;
 		pressed = true;

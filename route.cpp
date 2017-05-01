@@ -29,7 +29,7 @@ void				route::child_added				(node *n)
 	{
 		return;
 	}
-	printf("new child %s\n", n->get_name().c_str());
+	//printf("new child %s\n", n->get_name().c_str());
 
 	node_nums[n->get_name()] = nodes.size();
 
@@ -50,7 +50,7 @@ void				route::child_added				(node *n)
 
 void				route::child_removed			(node *n, std::string name)
 {
-	std::cout << "removed" << n->get_path() << " " << name << std::endl;
+	//std::cout << "removed" << n->get_path() << " " << name << std::endl;
 
 	const std::string &path = n->get_path();
 	if(path != "/route/waypoints")
@@ -97,7 +97,7 @@ void				route::new_property			(resource *r, property_base *p)
 		return;
 	}
 
-	printf("new prop %s of %s\n", p->get_name().c_str(), n->get_name().c_str());
+	//printf("new prop %s of %s\n", p->get_name().c_str(), n->get_name().c_str());
 
 	if(node_nums.find(n->get_name()) == node_nums.end())
 	{
