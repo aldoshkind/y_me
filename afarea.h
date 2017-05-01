@@ -14,7 +14,7 @@
 #include "yuneec/yuneec_route.h"
 #include "yuneec/yuneec_waypoint.h"
 
-class afarea : public QObject, public node
+class afarea : public QObject, public node, public property_listener
 {
 	Q_OBJECT
 
@@ -32,6 +32,8 @@ class afarea : public QObject, public node
 	void						update_route		();
 
 	node						*route;
+
+	void						updated				(property_base *prop);
 
 public:
 	property_get_set<afarea, double>	height;

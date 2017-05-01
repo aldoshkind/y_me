@@ -29,7 +29,7 @@ void afarea::add_vertex(geo_point pos)
 	ss << idx;
 	idx += 1;
 
-	if(idx > 3)
+	if(idx > 4)
 	{
 		return;
 	}
@@ -37,11 +37,15 @@ void afarea::add_vertex(geo_point pos)
 	printf("created\n");
 
 	node *n = append("vx" + ss.str());
-	n->add_property(new property_value<double>("latitude"));
-	n->add_property(new property_value<double>("longitude"));
-	*dynamic_cast<::property<double> *>(n->get_property("latitude")) = DEG(pos.lat());
-	*dynamic_cast<::property<double> *>(n->get_property("longitude")) = DEG(pos.lon());
+	auto lat = new property_value<double>("latitude");
+	auto lon = new property_value<double>("longitude");
+	n->add_property(lat);
+	n->add_property(lon);
+	*lat = DEG(pos.lat());
+	*lon = DEG(pos.lon());
 
+	lat->add_listener(this);
+	lon->add_listener(this);
 
 	if(idx > 2)
 	{
@@ -215,4 +219,12 @@ void afarea::set_height(double h)
 double afarea::get_height() const
 {
 	return val_height;
+}
+
+void afarea::updated(property_base *prop)
+{
+	if(ls().size() > 2)
+	{
+		update_route();
+	}
 }
